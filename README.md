@@ -1,2 +1,2 @@
 # python
-包含了一些使用Python实现的小项目
+dev分支为开发所用分支，代码可能不太完善，推荐优先clone master分支
