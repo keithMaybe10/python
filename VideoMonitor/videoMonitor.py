@@ -8,11 +8,12 @@ import platform
 import numpy as np
 from datetime import datetime
 import time
+import threading
 
 def openCamera(capture):
     try:
         ret, frame = capture.read()
-        return ret, frame
+        return ret, frame 
     except:
         print('camera open failed! please check connection or camera driver...')
         return False, False
@@ -40,8 +41,9 @@ def diskCheck(videoPath, videoList):
         diskSpcaceValue = vfs[statvfs.F_BAVAIL] * vfs[statvfs.F_BSIZE]/(1024 * 1024 * 1024)
     
     if diskSpcaceValue < 10:
-                deleteVideo(videoPath, videoList)
-                return True
+        t = threading.Thread(target=deleteVideo, args=(videoPath, videoList))
+        t.start()
+        return  True
     else:
         return False
 
@@ -82,7 +84,10 @@ def displayVideo(frame, faceROIPath, width, height, fps):
     faceDetect(frame, faceROIPath)
     cv2.imshow('Home Monitor', frame)
     if cv2.waitKey(5) == ord('q'):
-        sys.exit()
+        try:
+            sys.exit()
+        except:
+            print('video monitor closed!')
 
 def monitorRun(fileFath='F:\\HomeMonitor'):
     #get video and face path
@@ -105,6 +110,7 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
     # startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     startTime = datetime.now()
     video = cv2.VideoWriter(os.path.join(videoPath, videoName), fourcc, fps, (width, height))
+
     while(True):
         ret, frame = openCamera(capture)
         if ret:
