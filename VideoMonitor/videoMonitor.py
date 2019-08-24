@@ -134,7 +134,7 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
                 saveVideo(video, frame)
     except KeyboardInterrupt:
         print('video monitor closed!')
-
+        sys.exit(0)
 
 if __name__ == '__main__':
     monitorRun()
