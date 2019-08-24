@@ -10,10 +10,11 @@ from datetime import datetime
 import time
 import threading
 
+
 def openCamera(capture):
     try:
         ret, frame = capture.read()
-        return ret, frame 
+        return ret, frame
     except:
         print('camera open failed! please check connection or camera driver...')
         return False, False
@@ -26,26 +27,29 @@ def deleteVideo(videoPath, videoList):
             os.remove(os.path.join(videoPath, videoName))
         except:
             print('Delete video %s failed!' % videoName)
-    
-    videoList.pop([0])  #update videoList
+
+    videoList.pop([0])  # update videoList
 
 
 def diskCheck(videoPath, videoList):
     diskSpcaceValue = 0
     if platform.system() == 'Windows':
         free_bytes = ctypes.c_ulonglong(0)
-        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(videoPath), None, None, ctypes.pointer(free_bytes))
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(
+            videoPath), None, None, ctypes.pointer(free_bytes))
         diskSpcaceValue = free_bytes.value/1024/1024/1024
     else:
         vfs = os.statvfs(videoPath)
-        diskSpcaceValue = vfs[statvfs.F_BAVAIL] * vfs[statvfs.F_BSIZE]/(1024 * 1024 * 1024)
-    
+        diskSpcaceValue = vfs[statvfs.F_BAVAIL] * \
+            vfs[statvfs.F_BSIZE]/(1024 * 1024 * 1024)
+
     if diskSpcaceValue < 10:
         t = threading.Thread(target=deleteVideo, args=(videoPath, videoList))
         t.start()
-        return  True
+        return True
     else:
         return False
+
 
 def videoFileDetect(startTime, videoPath, videoList):
     currentTime = datetime.now()
@@ -61,6 +65,7 @@ def videoFileDetect(startTime, videoPath, videoList):
 def saveVideo(video, frame):
     cv2.waitKey(30)
     video.write(frame)
+
 
 def faceDetect(frame, faceROIPath):
     faceDetector = cv2.CascadeClassifier(
@@ -80,7 +85,8 @@ def displayVideo(frame, faceROIPath, width, height, fps):
     cv2.namedWindow('Home Monitor', cv2.WINDOW_AUTOSIZE)
     localTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     textstr = str(localTime + ' fps: ' + str(fps))
-    cv2.putText(frame, textstr, (15,30), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), 1, 8, False)
+    cv2.putText(frame, textstr, (15, 30), cv2.FONT_HERSHEY_PLAIN,
+                1.0, (255, 255, 255), 1, 8, False)
     faceDetect(frame, faceROIPath)
     cv2.imshow('Home Monitor', frame)
     if cv2.waitKey(5) == ord('q'):
@@ -89,8 +95,9 @@ def displayVideo(frame, faceROIPath, width, height, fps):
         except:
             print('video monitor closed!')
 
+
 def monitorRun(fileFath='F:\\HomeMonitor'):
-    #get video and face path
+    # get video and face path
     videoPath = os.path.join(fileFath, 'video')
     if not os.path.exists(videoPath):
         os.mkdir(videoPath)
@@ -98,8 +105,8 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
     faceROIPath = os.path.join(fileFath, 'faces')
     if not os.path.exists(faceROIPath):
         os.mkdir(faceROIPath)
-    
-    videoList=[]
+
+    videoList = []
     capture = cv2.VideoCapture(0)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     fps = int(capture.get(cv2.CAP_PROP_FPS))
@@ -109,20 +116,24 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
     videoList.append(videoName)
     # startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     startTime = datetime.now()
-    video = cv2.VideoWriter(os.path.join(videoPath, videoName), fourcc, fps, (width, height))
+    video = cv2.VideoWriter(os.path.join(
+        videoPath, videoName), fourcc, fps, (width, height))
 
-    while(True):
-        ret, frame = openCamera(capture)
-        if ret:
-            displayVideo(frame, faceROIPath, width, height, fps)
-            diskSpaceFreeFlag = diskCheck(videoPath, videoList)
-            videoFileFlag = videoFileDetect(startTime, videoPath, videoList)
-            if diskSpaceFreeFlag or videoFileFlag:
-                # create a new video file
-                videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
-                videoList.append(videoName)
-                video = cv2.VideoWriter(os.path.join(videoPath, videoName),fourcc, fps, (width, height))  
-            saveVideo(video, frame)
+    try:
+        while(True):
+            ret, frame = openCamera(capture)
+            if ret:
+                displayVideo(frame, faceROIPath, width, height, fps)
+                diskSpaceFreeFlag = diskCheck(videoPath, videoList)
+                videoFileFlag = videoFileDetect(startTime, videoPath, videoList)
+                if diskSpaceFreeFlag or videoFileFlag:
+                    # create a new video file
+                    videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
+                    videoList.append(videoName)
+                    video = cv2.VideoWriter(os.path.join(videoPath, videoName), fourcc, fps, (width, height))
+                saveVideo(video, frame)
+    except KeyboardInterrupt:
+        print('video monitor closed!')
 
 
 if __name__ == '__main__':
