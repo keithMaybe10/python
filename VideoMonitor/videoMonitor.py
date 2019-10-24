@@ -8,6 +8,7 @@ import platform
 import numpy as np
 from datetime import datetime
 import time
+import threading
 
 def openCamera(capture):
     try:
@@ -30,6 +31,10 @@ def deleteVideo(videoPath, videoList):
 
 
 def diskCheck(videoPath, videoList):
+    """
+    This function will check diskspace when write video.
+    """
+
     diskSpcaceValue = 0
     if platform.system() == 'Windows':
         free_bytes = ctypes.c_ulonglong(0)
@@ -46,6 +51,9 @@ def diskCheck(videoPath, videoList):
         return False
 
 def videoFileDetect(startTime, videoPath, videoList):
+    """
+    Check if the current time is the same day as the video file create.
+    """
     currentTime = datetime.now()
     if currentTime.day != startTime.day:
         return True
@@ -61,6 +69,12 @@ def saveVideo(video, frame):
     video.write(frame)
 
 def faceDetect(frame, faceROIPath):
+    """detect face in the video
+
+    This function will detect face based haarcascade_frontalface_default.xml
+
+
+    """
     faceDetector = cv2.CascadeClassifier(
         'D:\Python3\install\Lib\site-packages\cv2\data\haarcascade_frontalface_default.xml')
     frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -75,6 +89,19 @@ def faceDetect(frame, faceROIPath):
 
 
 def displayVideo(frame, faceROIPath, width, height, fps):
+    """Display the video
+    
+    This function will create a window based on width and height.
+    At the same time, it will show video capture time on the top of the window.
+    It also will detect people face in the vido.
+
+    Args:
+        frame: camer video
+        faceROIPath: if detect a face in the video, where to save the face
+        width,heigh, fps: video size and fps
+    
+
+    """
     cv2.namedWindow('Home Monitor', cv2.WINDOW_AUTOSIZE)
     localTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     textstr = str(localTime + ' fps: ' + str(fps))
@@ -84,8 +111,11 @@ def displayVideo(frame, faceROIPath, width, height, fps):
     if cv2.waitKey(5) == ord('q'):
         sys.exit()
 
+def initParameter():
+
+
 def monitorRun(fileFath='F:\\HomeMonitor'):
-    #get video and face path
+    #create video and face path
     videoPath = os.path.join(fileFath, 'video')
     if not os.path.exists(videoPath):
         os.mkdir(videoPath)
@@ -94,12 +124,15 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
     if not os.path.exists(faceROIPath):
         os.mkdir(faceROIPath)
     
+    #initial some video parameters
     videoList=[]
     capture = cv2.VideoCapture(0)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     fps = int(capture.get(cv2.CAP_PROP_FPS))
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    #save video file named on video create time
     videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
     videoList.append(videoName)
     # startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -108,9 +141,17 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
     while(True):
         ret, frame = openCamera(capture)
         if ret:
+            #display the video
             displayVideo(frame, faceROIPath, width, height, fps)
+
+            # check free disk space
             diskSpaceFreeFlag = diskCheck(videoPath, videoList)
+
+            # determine if is the same day
             videoFileFlag = videoFileDetect(startTime, videoPath, videoList)
+
+            # if check disk space is false or not the same day
+            # create a new video file to save camer capture
             if diskSpaceFreeFlag or videoFileFlag:
                 # create a new video file
                 videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
