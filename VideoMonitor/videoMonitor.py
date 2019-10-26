@@ -9,17 +9,22 @@ import numpy as np
 from datetime import datetime
 import time
 import threading
+import camera
 
-def openCamera(capture):
-    try:
-        ret, frame = capture.read()
-        return ret, frame
-    except:
-        print('camera open failed! please check connection or camera driver...')
-        return False, False
+# def openCamera(capture):
+#     try:
+#         ret, frame = capture.read()
+#         return ret, frame
+#     except:
+#         print('camera open failed! please check connection or camera driver...')
+#         return False, False
 
 
 def deleteVideo(videoPath, videoList):
+    """
+    If disk is lack of sapce or save more than 7 days video, it will delete the earliest file.
+
+    """
     videoName = videoList[0]
     if os.path.exists(os.path.join(videoPath, videoName)):
         try:
@@ -78,7 +83,6 @@ def faceDetect(frame, faceROIPath):
 
     This function will detect face based haarcascade_frontalface_default.xml
 
-
     """
     faceDetector = cv2.CascadeClassifier(
         'D:\Python3\install\Lib\site-packages\cv2\data\haarcascade_frontalface_default.xml')
@@ -119,7 +123,9 @@ def displayVideo(frame, faceROIPath, width, height, fps):
         except:
             print('video monitor closed!')
 
-def monitorRun(fileFath='F:\\HomeMonitor'):
+def monitorRun(filePath):
+    if not os.path.exists(filePath):
+        os.mkdir(filePath)
     # get video and face path
     videoPath = os.path.join(fileFath, 'video')
     if not os.path.exists(videoPath):
@@ -130,11 +136,12 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
         os.mkdir(faceROIPath)
 
     videoList = []
-    capture = cv2.VideoCapture(0)
+    videoCamera = camera.Camera()
+    # capture = cv2.VideoCapture(0)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    fps = int(capture.get(cv2.CAP_PROP_FPS))
-    width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = videoCamera.cameraFPS()
+    width, height = videoCamera.cameraSize()
+    # height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     #save video file named on video create time
     videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
@@ -146,7 +153,7 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
 
     try:
         while(True):
-            ret, frame = openCamera(capture)
+            ret, frame = videoCamera.openCamera()
             if ret:
                 displayVideo(frame, faceROIPath, width, height, fps)
                 diskSpaceFreeFlag = diskCheck(videoPath, videoList)
@@ -162,4 +169,5 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
 
 
 if __name__ == '__main__':
-    monitorRun()
+    fileFath='F:\\HomeMonitor'
+    monitorRun(fileFath)
