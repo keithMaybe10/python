@@ -169,5 +169,5 @@ def monitorRun(filePath):
 
 
 if __name__ == '__main__':
-    fileFath='F:\\HomeMonitor'
+    filePath='F:\\HomeMonitor'
     monitorRun(fileFath)
