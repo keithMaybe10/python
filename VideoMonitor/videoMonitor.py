@@ -119,10 +119,6 @@ def displayVideo(frame, faceROIPath, width, height, fps):
         except:
             print('video monitor closed!')
 
-
-def initParameter():
-
-
 def monitorRun(fileFath='F:\\HomeMonitor'):
     # get video and face path
     videoPath = os.path.join(fileFath, 'video')
