@@ -9,10 +9,6 @@ import numpy as np
 from datetime import datetime
 import time
 import threading
-<<<<<<< HEAD
-=======
-
->>>>>>> b5a1051bc3178ae76673fd2f07e193881df7df8a
 
 def openCamera(capture):
     try:
