@@ -103,8 +103,7 @@ def displayVideo(frame, faceROIPath, width, height, fps):
     Args:
         frame: camer video
         faceROIPath: if detect a face in the video, where to save the face
-        width,heigh, fps: video size and fps
-    
+        width,heigh, fps: video size and fp
 
     """
     cv2.namedWindow('Home Monitor', cv2.WINDOW_AUTOSIZE)
@@ -125,11 +124,7 @@ def initParameter():
 
 
 def monitorRun(fileFath='F:\\HomeMonitor'):
-<<<<<<< HEAD
-    #create video and face path
-=======
     # get video and face path
->>>>>>> b5a1051bc3178ae76673fd2f07e193881df7df8a
     videoPath = os.path.join(fileFath, 'video')
     if not os.path.exists(videoPath):
         os.mkdir(videoPath)
@@ -137,14 +132,8 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
     faceROIPath = os.path.join(fileFath, 'faces')
     if not os.path.exists(faceROIPath):
         os.mkdir(faceROIPath)
-<<<<<<< HEAD
-    
-    #initial some video parameters
-    videoList=[]
-=======
 
     videoList = []
->>>>>>> b5a1051bc3178ae76673fd2f07e193881df7df8a
     capture = cv2.VideoCapture(0)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     fps = int(capture.get(cv2.CAP_PROP_FPS))
@@ -156,29 +145,6 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
     videoList.append(videoName)
     # startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     startTime = datetime.now()
-<<<<<<< HEAD
-    video = cv2.VideoWriter(os.path.join(videoPath, videoName), fourcc, fps, (width, height))
-    while(True):
-        ret, frame = openCamera(capture)
-        if ret:
-            #display the video
-            displayVideo(frame, faceROIPath, width, height, fps)
-
-            # check free disk space
-            diskSpaceFreeFlag = diskCheck(videoPath, videoList)
-
-            # determine if is the same day
-            videoFileFlag = videoFileDetect(startTime, videoPath, videoList)
-
-            # if check disk space is false or not the same day
-            # create a new video file to save camer capture
-            if diskSpaceFreeFlag or videoFileFlag:
-                # create a new video file
-                videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
-                videoList.append(videoName)
-                video = cv2.VideoWriter(os.path.join(videoPath, videoName),fourcc, fps, (width, height))  
-            saveVideo(video, frame)
-=======
     video = cv2.VideoWriter(os.path.join(
         videoPath, videoName), fourcc, fps, (width, height))
 
@@ -197,7 +163,6 @@ def monitorRun(fileFath='F:\\HomeMonitor'):
                 saveVideo(video, frame)
     except KeyboardInterrupt:
         print('video monitor closed!')
->>>>>>> b5a1051bc3178ae76673fd2f07e193881df7df8a
 
 
 if __name__ == '__main__':
