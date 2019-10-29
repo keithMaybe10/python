@@ -5,6 +5,7 @@ import cv2
 from datetime import datetime
 from camera import Camera
 import platform
+import sys
 
 class CameraVideo(Camera):
     def __init__(self, videoPath):
@@ -31,7 +32,13 @@ class CameraVideo(Camera):
         If disk is lack of sapce or save more than 7 days video, it will delete the earliest file.
 
         """
-        videoName = videoNameList[0]
+        if not len(videoNameList):
+            print('Has no video, and check disk space failed!\n')
+            try:
+                sys.exit()
+            except:
+                print('Please check your disk space, program exit...')
+            
         if os.path.exists(os.path.join(videoPath, videoName)):
             try:
                 os.remove(os.path.join(videoPath, videoName))
@@ -57,9 +64,17 @@ class CameraVideo(Camera):
         if diskSpcaceValue < 10:
             t = threading.Thread(target=self.deleteVideo(), args=(self.videoPath, self.videoNameList))
             t.start()
-            return True
-        else:
-            return False
+
+    def isTheSameDay(self):
+        """
+        if the current time is the same day as the video file craete
+        """
+        if len(self.videoNameList):
+            videoFileCreateTime = self.videoNameList[-1].splite('.')[0]
+            videoFileCreateDay = datetime.strptime(videoFileCreateTime, '%Y%m%d_%H%M%S').day
+            currentDay = datetime.now().day
+            if currentDay is not videoFileCreateDay:
+                self.createNewVideoFile()
 
     def writeVideo(self):
         self.updateVideoNameList(self.videoName)
