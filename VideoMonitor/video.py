@@ -9,20 +9,32 @@ import sys
 
 class CameraVideo(Camera):
     def __init__(self, videoPath):
+        """
+        initial some parameter
+        """
         super.__init__()
         self.videoPath = videoPath
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
         self.videoNameList = []
-        self.writer = cv2.VideoWriter(os.path.join(videoPath,self.videoName), self.fourcc,
-                    Camera.cameraFPS(), Camera.cameraSize())
+        # self.writer = cv2.VideoWriter(os.path.join(videoPath,self.videoName), self.fourcc,
+        #             Camera.cameraFPS(), Camera.cameraSize())
+        self.initVideoDir()
+        self.createNewVideoFile()
 
-    def updateVideoNameList(self, videoName):
-        self.videoNameList.append(videoName)
+    def updateVideoNameList(self, videoFileName):
+        """
+        update video list when create new video file
+        """
+
+        self.videoNameList.append(videoFileName)
 
     def createNewVideoFile(self):
-        videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
-        self.updateVideoNameList(videoName)
+        """
+        create new video file and add video file name to the list
+        """
+        videoFileName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
+        self.updateVideoNameList(videoFileName)
         self.writer = cv2.VideoWriter(os.path.join(self.videoPath, videoName), self.fourcc,
                     Camera.cameraFPS(), Camera.cameraSize())
 
@@ -30,7 +42,6 @@ class CameraVideo(Camera):
     def deleteVideo(self, videoPath, videoNameList):
         """
         If disk is lack of sapce or save more than 7 days video, it will delete the earliest file.
-
         """
         if not len(videoNameList):
             print('Has no video, and check disk space failed!\n')
@@ -76,6 +87,18 @@ class CameraVideo(Camera):
             if currentDay is not videoFileCreateDay:
                 self.createNewVideoFile()
 
-    def writeVideo(self):
-        self.updateVideoNameList(self.videoName)
+    def writeVideo(self, frame):
+        """
+        save video
+        """
+        # self.updateVideoNameList(self.videoName)
         self.checkDiskSpace()
+        self.writer.write(frame)
+
+    def initVideoDir(self):
+        """
+        initial save video path, create new dir when it not exits
+        """
+        videoFilePath = os.path.join(self.videoPath, 'video')
+        if not os.path.exists(videoFilePath):
+            os.mkdir(videoFilePath)

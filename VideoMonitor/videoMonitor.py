@@ -10,6 +10,7 @@ from datetime import datetime
 import time
 import threading
 import camera
+import video
 
 def deleteVideo(videoPath, videoList):
     """
@@ -115,12 +116,12 @@ def displayVideo(frame, faceROIPath, width, height, fps):
             print('video monitor closed!')
 
 def monitorRun(filePath):
-    if not os.path.exists(filePath):
-        os.mkdir(filePath)
-    # get video and face path
-    videoPath = os.path.join(filePath, 'video')
-    if not os.path.exists(videoPath):
-        os.mkdir(videoPath)
+    # if not os.path.exists(filePath):
+    #     os.mkdir(filePath)
+    # # get video and face path
+    # videoPath = os.path.join(filePath, 'video')
+    # if not os.path.exists(videoPath):
+    #     os.mkdir(videoPath)
 
     faceROIPath = os.path.join(filePath, 'faces')
     if not os.path.exists(faceROIPath):
@@ -128,17 +129,18 @@ def monitorRun(filePath):
 
     videoNameList = []
     videoCamera = camera.Camera()
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    fps = videoCamera.cameraFPS()
-    width, height = videoCamera.cameraSize()
+    videoWriter = video.CameraVideo(filePath)
+    # fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    # fps = videoCamera.cameraFPS()
+    # width, height = videoCamera.cameraSize()
 
-    #save video file named on video create time
-    videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
-    videoNameList.append(videoName)
-    # startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    startTime = datetime.now()
-    video = cv2.VideoWriter(os.path.join(
-        videoPath, videoName), fourcc, fps, (width, height))
+    # #save video file named on video create time
+    # videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
+    # videoNameList.append(videoName)
+    # # startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    # startTime = datetime.now()
+    # video = cv2.VideoWriter(os.path.join(
+    #     videoPath, videoName), fourcc, fps, (width, height))
 
     try:
         while(True):
