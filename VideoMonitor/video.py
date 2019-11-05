@@ -19,17 +19,17 @@ class CameraVideo(Camera):
         self.videoNameList = []
         # self.writer = cv2.VideoWriter(os.path.join(videoPath,self.videoName), self.fourcc,
         #             Camera.cameraFPS(), Camera.cameraSize())
-        self.initVideoDir()
-        self.createNewVideoFile()
+        self.__initVideoDir();
+        self.__createNewVideoFile()
 
-    def updateVideoNameList(self, videoFileName):
+    def __updateVideoNameList(self, videoFileName):
         """
         update video list when create new video file
         """
 
         self.videoNameList.append(videoFileName)
 
-    def createNewVideoFile(self):
+    def __createNewVideoFile(self):
         """
         create new video file and add video file name to the list
         """
@@ -39,7 +39,7 @@ class CameraVideo(Camera):
                     Camera.cameraFPS(), Camera.cameraSize())
 
 
-    def deleteVideo(self, videoPath, videoNameList):
+    def __deleteVideo(self, videoPath, videoNameList):
         """
         If disk is lack of sapce or save more than 7 days video, it will delete the earliest file.
         """
@@ -56,7 +56,7 @@ class CameraVideo(Camera):
             except:
                 print('Delete video %s failed' % videoName)
 
-    def checkDiskSpace(self):
+    def __checkDiskSpace(self):
         """
         This function will check diskspace when write video.
         """
@@ -73,10 +73,10 @@ class CameraVideo(Camera):
                 vfs[statvfs.F_BSIZE]/(1024 * 1024 * 1024)
 
         if diskSpcaceValue < 10:
-            t = threading.Thread(target=self.deleteVideo(), args=(self.videoPath, self.videoNameList))
+            t = threading.Thread(target=self.__deleteVideo(), args=(self.videoPath, self.videoNameList))
             t.start()
 
-    def isTheSameDay(self):
+    def __isTheSameDay(self):
         """
         if the current time is the same day as the video file craete
         """
@@ -92,10 +92,11 @@ class CameraVideo(Camera):
         save video
         """
         # self.updateVideoNameList(self.videoName)
-        self.checkDiskSpace()
+        self.__checkDiskSpace()
+        self.__isTheSameDay()
         self.writer.write(frame)
 
-    def initVideoDir(self):
+    def __initVideoDir(self):
         """
         initial save video path, create new dir when it not exits
         """
