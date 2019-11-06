@@ -73,7 +73,7 @@ class CameraVideo(Camera):
                 vfs[statvfs.F_BSIZE]/(1024 * 1024 * 1024)
 
         if diskSpcaceValue < 10:
-            t = threading.Thread(target=self.__deleteVideo(), args=(self.videoPath, self.videoNameList))
+            t = threading.Thread(target=self.__deleteVideo, args = (self.videoPath, self.videoNameList))
             t.start()
 
     def __isTheSameDay(self):

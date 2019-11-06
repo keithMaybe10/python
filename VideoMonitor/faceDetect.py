@@ -22,7 +22,7 @@ class videoProcess(camera):
             os.mkdir(self.facePath)
         return facePath
 
-    def display(self, frame):
+    def __display(self, frame):
         fps = Camera.cameraFPS()
         currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         textStr = str(currentTime + ' fps: ' + str(fps))
@@ -44,4 +44,5 @@ class videoProcess(camera):
             cv2.rectangle(frame, (x, y), (x + h, y + w), (0, 255, 0), 2)
             t = threading.Thread(target=self.__saveFaceROI, args=('face, fram'))
             t.start()
+        self.__display(frame)
         
