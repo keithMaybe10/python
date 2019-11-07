@@ -25,6 +25,9 @@ class videoProcess(Camera):
         return facePath
 
     def __display(self, frame):
+        """
+        frame display function
+        """
         fps = self.cameraFPS()
         currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         textStr = str(currentTime + ' fps: ' + str(fps))
@@ -38,16 +41,21 @@ class videoProcess(Camera):
                 print('video monitor closed')
 
     def __saveFaceROI(self, face, frame):
+        """
+        when frame has faces, then save the face
+        """
         x, y, w, h = face
         faceROI = frame[y:(y+w), x:(x+h)]
         faceName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.png'
         cv2.imwrite(os.path.join(self.facePath, faceName), faceROI)
 
     def faceDetect(self, frame):
+        """
+        Check disk space and is the same day before face detect
+        """
         frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = self.faceDetector.detectMultiScale(frameGray, 1.3, 5)
         for face in faces:
-            print('Detect face in frame!')
             x, y, w, h = face
             cv2.rectangle(frame, (x, y), (x + h, y + w), (0, 255, 0), 2)
             t = threading.Thread(target=self.__saveFaceROI, args=(face, frame))

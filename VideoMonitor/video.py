@@ -6,6 +6,8 @@ from datetime import datetime
 from camera import Camera
 import platform
 import sys
+import ctypes
+import threading
 
 class CameraVideo(Camera):
     def __init__(self, videoPath):
@@ -18,7 +20,7 @@ class CameraVideo(Camera):
         self.videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
         self.videoNameList = []
         self.writer = cv2.VideoWriter(os.path.join(self.videoPath,self.videoName), self.fourcc,
-                    self.cameraFPS(), self.cameraSize())
+                    self.cameraFPS(), (self.cameraWidth(), self.cameraHeight()))
         self.__createNewVideoFile()
 
     def __initVideoSaveDir(self, videoPath):
@@ -43,10 +45,8 @@ class CameraVideo(Camera):
         """
         videoFileName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
         self.__updateVideoNameList(videoFileName)
-        # self.writer = cv2.VideoWriter(os.path.join(self.videoPath, videoFileName), self.fourcc,
-        #             Camera.cameraFPS(), Camera.cameraSize())
         self.writer = cv2.VideoWriter(os.path.join(self.videoPath, videoFileName), self.fourcc,
-            self.cameraFPS(), self.cameraSize())
+            self.cameraFPS(), (self.cameraWidth(), self.cameraHeight()))
 
 
     def __deleteVideo(self, videoPath, videoNameList):
@@ -91,11 +91,23 @@ class CameraVideo(Camera):
         if the current time is the same day as the video file craete
         """
         if len(self.videoNameList):
-            videoFileCreateTime = self.videoNameList[-1].splite('.')[0]
+            videoFileCreateTime = self.videoNameList[0].split('.')[0]
             videoFileCreateDay = datetime.strptime(videoFileCreateTime, '%Y%m%d_%H%M%S').day
             currentDay = datetime.now().day
             if currentDay is not videoFileCreateDay:
                 self.createNewVideoFile()
+    
+    def __isMoreThan7Day(self):
+        """
+        If video save more than 7 based on date, then delete the earliest videofile
+        """
+        earliestVideoName = self.videoNameList[0].split('0')[0]
+        earliestVideoDate = datetime.strptime(earliestVideoName, '%Y%m%d_%H%M%S')
+        if (datetime.now() - earliestVideoDate).days > 7:
+            t = threading.Thread(target=self.__deleteVideo, args=(self.videoPath, self.videoNameList[0]))
+            t.start()
+            self.__createNewVideoFile()
+
 
     def writeVideo(self, frame):
         """
@@ -104,4 +116,6 @@ class CameraVideo(Camera):
         # self.updateVideoNameList(self.videoName)
         self.__checkDiskSpace()
         self.__isTheSameDay()
+        self.__isMoreThan7Day()
         self.writer.write(frame)
+        cv2.waitKey(30)

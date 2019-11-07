@@ -19,7 +19,10 @@ def monitorRun(filePath):
             ret, frame = videoCamera.openCamera()
             if ret:
                 faceDetector.faceDetect(frame)
-                t = threading.Thread(target = videoWriter.writeVideo, args = (frame))
+                # t = threading.Thread(target = videoWriter.writeVideo, args = (frame))
+                # t.start()
+                # t.join()
+                # videoWriter.writeVideo(frame)
     except KeyboardInterrupt:
         print('video monitor closed!')
 

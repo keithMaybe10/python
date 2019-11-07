@@ -24,9 +24,14 @@ class Camera(object):
         """
         return int(self.capture.get(cv2.CAP_PROP_FPS))
 
-    def cameraSize(self):
+    def cameraWidth(self):
         """
-        Return camera size, width and height
+        Return frame width
         """
-        return int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        
+        return int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+    
+    def cameraHeight(self):
+        """
+        Return frame height
+        """
+        return int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
