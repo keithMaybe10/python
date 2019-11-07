@@ -12,15 +12,23 @@ class CameraVideo(Camera):
         """
         initial some parameter
         """
-        super.__init__()
-        self.videoPath = videoPath
+        super().__init__()
+        self.videoPath = self.__initVideoSaveDir(videoPath)
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.videoName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
         self.videoNameList = []
-        # self.writer = cv2.VideoWriter(os.path.join(videoPath,self.videoName), self.fourcc,
-        #             Camera.cameraFPS(), Camera.cameraSize())
-        self.__initVideoDir();
+        self.writer = cv2.VideoWriter(os.path.join(self.videoPath,self.videoName), self.fourcc,
+                    self.cameraFPS(), self.cameraSize())
         self.__createNewVideoFile()
+
+    def __initVideoSaveDir(self, videoPath):
+        """
+        init dir where video will save
+        """
+        videoPath = os.path.join(videoPath, 'video')
+        if not os.path.exists(videoPath):
+            os.mkdir(videoPath)
+        return videoPath
 
     def __updateVideoNameList(self, videoFileName):
         """
@@ -34,9 +42,11 @@ class CameraVideo(Camera):
         create new video file and add video file name to the list
         """
         videoFileName = datetime.now().strftime('%Y%m%d_%H%M%S') + '.avi'
-        self.updateVideoNameList(videoFileName)
-        self.writer = cv2.VideoWriter(os.path.join(self.videoPath, videoName), self.fourcc,
-                    Camera.cameraFPS(), Camera.cameraSize())
+        self.__updateVideoNameList(videoFileName)
+        # self.writer = cv2.VideoWriter(os.path.join(self.videoPath, videoFileName), self.fourcc,
+        #             Camera.cameraFPS(), Camera.cameraSize())
+        self.writer = cv2.VideoWriter(os.path.join(self.videoPath, videoFileName), self.fourcc,
+            self.cameraFPS(), self.cameraSize())
 
 
     def __deleteVideo(self, videoPath, videoNameList):
@@ -95,11 +105,3 @@ class CameraVideo(Camera):
         self.__checkDiskSpace()
         self.__isTheSameDay()
         self.writer.write(frame)
-
-    def __initVideoDir(self):
-        """
-        initial save video path, create new dir when it not exits
-        """
-        videoFilePath = os.path.join(self.videoPath, 'video')
-        if not os.path.exists(videoFilePath):
-            os.mkdir(videoFilePath)
