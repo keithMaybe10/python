@@ -101,7 +101,7 @@ class CameraVideo(Camera):
         """
         If video save more than 7 based on date, then delete the earliest videofile
         """
-        earliestVideoName = self.videoNameList[0].split('0')[0]
+        earliestVideoName = self.videoNameList[0].split('.')[0]
         earliestVideoDate = datetime.strptime(earliestVideoName, '%Y%m%d_%H%M%S')
         if (datetime.now() - earliestVideoDate).days > 7:
             t = threading.Thread(target=self.__deleteVideo, args=(self.videoPath, self.videoNameList[0]))
