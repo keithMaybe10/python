@@ -22,7 +22,7 @@ def monitorRun(filePath):
                 # t = threading.Thread(target = videoWriter.writeVideo, args = (frame))
                 # t.start()
                 # t.join()
-                # videoWriter.writeVideo(frame)
+                videoWriter.writeVideo(frame)
     except KeyboardInterrupt:
         print('video monitor closed!')
 
