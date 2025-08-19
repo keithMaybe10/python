@@ -199,91 +199,79 @@ class CertificateManager:
             return None
     
     def install_ca_certificate(self) -> bool:
-        """安装CA证书到系统信任库"""
+        """提供CA证书安装指导（不自动安装）"""
         try:
             system = platform.system().lower()
+            cert_path = str(self.ca_cert_file.absolute())
+            
+            logger.info("CA证书已生成，请手动安装以获得最佳体验")
+            logger.info(f"证书位置: {cert_path}")
             
             if system == "windows":
-                return self._install_ca_windows()
+                logger.info("Windows安装方法:")
+                logger.info("1. 双击证书文件")
+                logger.info("2. 选择'安装证书'")
+                logger.info("3. 选择'本地计算机'或'当前用户'")
+                logger.info("4. 选择'受信任的根证书颁发机构'")
             elif system == "darwin":  # macOS
-                return self._install_ca_macos()
+                logger.info("macOS安装方法:")
+                logger.info("1. 双击证书文件")
+                logger.info("2. 在钥匙串访问中找到证书")
+                logger.info("3. 双击证书，设置为'始终信任'")
             elif system == "linux":
-                return self._install_ca_linux()
-            else:
-                logger.warning(f"不支持的操作系统: {system}")
-                return False
+                logger.info("Linux安装方法:")
+                logger.info("1. 复制证书到 /usr/local/share/ca-certificates/")
+                logger.info("2. 运行 sudo update-ca-certificates")
+                logger.info("3. 或在浏览器中手动导入证书")
+            
+            # 不自动安装，避免需要管理员权限
+            return True
                 
         except Exception as e:
-            logger.error(f"安装CA证书失败: {e}")
+            logger.error(f"生成证书安装指导失败: {e}")
             return False
     
-    def _install_ca_windows(self) -> bool:
-        """在Windows上安装CA证书"""
-        try:
-            # 使用certlm.msc安装证书到本地机器的信任根证书颁发机构
-            cmd = f'certutil -addstore -f "ROOT" "{self.ca_cert_file}"'
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                logger.info("CA证书安装到Windows系统成功")
-                return True
-            else:
-                logger.error(f"Windows CA证书安装失败: {result.stderr}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Windows CA证书安装失败: {e}")
-            return False
-    
-    def _install_ca_macos(self) -> bool:
-        """在macOS上安装CA证书"""
-        try:
-            # 使用security命令安装证书
-            cmd = f'security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "{self.ca_cert_file}"'
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                logger.info("CA证书安装到macOS系统成功")
-                return True
-            else:
-                logger.error(f"macOS CA证书安装失败: {result.stderr}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"macOS CA证书安装失败: {e}")
-            return False
-    
-    def _install_ca_linux(self) -> bool:
-        """在Linux上安装CA证书"""
-        try:
-            # 复制证书到系统目录
-            import shutil
-            
-            # 不同发行版的证书目录可能不同
-            cert_dirs = [
-                "/usr/local/share/ca-certificates/",
-                "/etc/ssl/certs/",
-                "/usr/share/ca-certificates/"
+    def get_cert_install_instructions(self) -> dict:
+        """获取证书安装说明"""
+        system = platform.system().lower()
+        cert_path = str(self.ca_cert_file.absolute())
+        
+        instructions = {
+            "cert_path": cert_path,
+            "system": system,
+            "instructions": []
+        }
+        
+        if system == "windows":
+            instructions["instructions"] = [
+                f"1. 找到证书文件: {cert_path}",
+                "2. 双击证书文件",
+                "3. 点击'安装证书'",
+                "4. 选择'当前用户'或'本地计算机'",
+                "5. 选择'将所有的证书都放入下列存储'",
+                "6. 点击'浏览'，选择'受信任的根证书颁发机构'",
+                "7. 点击'确定'完成安装"
             ]
-            
-            installed = False
-            for cert_dir in cert_dirs:
-                if os.path.exists(cert_dir):
-                    dest_file = os.path.join(cert_dir, "devaccelerator-ca.crt")
-                    shutil.copy2(self.ca_cert_file, dest_file)
-                    
-                    # 更新证书库
-                    subprocess.run(["update-ca-certificates"], capture_output=True)
-                    
-                    logger.info(f"CA证书安装到Linux系统成功: {dest_file}")
-                    installed = True
-                    break
-            
-            return installed
-                
-        except Exception as e:
-            logger.error(f"Linux CA证书安装失败: {e}")
-            return False
+        elif system == "darwin":
+            instructions["instructions"] = [
+                f"1. 找到证书文件: {cert_path}",
+                "2. 双击证书文件",
+                "3. 在钥匙串访问中找到 'DevAccelerator Root CA'",
+                "4. 双击证书，展开'信任'部分",
+                "5. 将'使用此证书时'设置为'始终信任'",
+                "6. 关闭窗口并输入密码确认"
+            ]
+        elif system == "linux":
+            instructions["instructions"] = [
+                f"1. 证书文件位置: {cert_path}",
+                "2. 方法一 - 系统级安装（需要sudo权限）:",
+                f"   sudo cp {cert_path} /usr/local/share/ca-certificates/devaccelerator.crt",
+                "   sudo update-ca-certificates",
+                "3. 方法二 - 浏览器手动导入:",
+                "   在Firefox/Chrome的设置中导入证书到'受信任的根证书颁发机构'"
+            ]
+        
+        return instructions
     
     def is_ca_certificate_valid(self) -> bool:
         """检查CA证书是否有效"""

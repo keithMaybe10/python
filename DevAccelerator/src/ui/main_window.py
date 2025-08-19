@@ -17,7 +17,7 @@ from core.accelerator import accelerator, AcceleratorStatus
 from ui.styles import ANT_DESIGN_STYLE, get_icon, get_status_color, THEME
 from ui.widgets import (
     StatusCard, NodeStatusWidget, LogWidget, MetricsWidget, 
-    NodeTableWidget, AddNodeDialog, LoadingWidget
+    NodeTableWidget, AddNodeDialog, LoadingWidget, CertInstallDialog
 )
 from utils.logger import setup_logger
 
@@ -245,16 +245,24 @@ class MainWindow(QMainWindow):
         # DNS服务器
         dns_layout = QHBoxLayout()
         dns_layout.addWidget(QLabel("DNS服务器:"))
-        self.dns_server_label = QLabel("127.0.0.1")
+        self.dns_server_label = QLabel("127.0.0.1:5353")
         self.dns_server_label.setProperty("class", "description")
         dns_layout.addWidget(self.dns_server_label)
         dns_layout.addStretch()
         config_layout.addLayout(dns_layout)
         
-        # 复制配置按钮
+        # 按钮布局
+        button_layout = QHBoxLayout()
+        
         copy_button = QPushButton(f"{get_icon('copy')} 复制配置")
         copy_button.clicked.connect(self.copy_proxy_config)
-        config_layout.addWidget(copy_button)
+        button_layout.addWidget(copy_button)
+        
+        cert_button = QPushButton(f"{get_icon('key')} 证书安装")
+        cert_button.clicked.connect(self.show_cert_install_dialog)
+        button_layout.addWidget(cert_button)
+        
+        config_layout.addLayout(button_layout)
         
         parent_card.add_content(config_widget)
     
@@ -519,15 +527,37 @@ class MainWindow(QMainWindow):
     
     def copy_proxy_config(self):
         """复制代理配置"""
-        config = accelerator.get_system_proxy_config()
-        config_text = f"""HTTP代理: {config['http_proxy']}
-HTTPS代理: {config['https_proxy']}
-DNS服务器: {config['dns_server']}"""
+        config_text = f"""HTTP代理: http://127.0.0.1:8080
+HTTPS代理: http://127.0.0.1:8443  
+DNS服务器: 127.0.0.1:5353
+
+注意: DNS端口为5353，需要在系统网络设置中手动配置。"""
         
         clipboard = QApplication.clipboard()
         clipboard.setText(config_text)
         
         self.add_log_message("代理配置已复制到剪贴板", "SUCCESS")
+    
+    def show_cert_install_dialog(self):
+        """显示证书安装对话框"""
+        try:
+            from core.cert_manager import CertificateManager
+            cert_manager = CertificateManager()
+            
+            # 确保证书存在
+            if not cert_manager.ensure_ca_certificate():
+                QMessageBox.warning(self, "错误", "无法生成CA证书")
+                return
+            
+            # 获取安装说明
+            instructions = cert_manager.get_cert_install_instructions()
+            
+            # 显示对话框
+            dialog = CertInstallDialog(instructions, self)
+            dialog.show()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "错误", f"显示证书安装对话框失败: {e}")
     
     def clear_logs(self):
         """清空日志"""

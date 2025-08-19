@@ -109,18 +109,31 @@ class DevAcceleratorApp:
                 )
                 return False
             
-            # 检查是否有管理员权限（Windows）
-            if os.name == 'nt':
-                try:
-                    import ctypes
-                    if not ctypes.windll.shell32.IsUserAnAdmin():
-                        QMessageBox.warning(
-                            None,
-                            "权限提示", 
-                            "建议以管理员权限运行以获得最佳体验"
-                        )
-                except Exception:
-                    pass
+            # 检查端口可用性
+            try:
+                import socket
+                # 检查关键端口是否可用
+                test_ports = [5353, 8080, 8443]
+                unavailable_ports = []
+                
+                for port in test_ports:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(1)
+                    result = sock.connect_ex(('127.0.0.1', port))
+                    sock.close()
+                    
+                    if result == 0:  # 端口被占用
+                        unavailable_ports.append(port)
+                
+                if unavailable_ports:
+                    QMessageBox.warning(
+                        None,
+                        "端口占用提示",
+                        f"以下端口被占用: {unavailable_ports}\n"
+                        f"程序可能无法正常工作，请关闭占用端口的程序或修改配置。"
+                    )
+            except Exception:
+                pass
             
             # 检查网络连接
             try:

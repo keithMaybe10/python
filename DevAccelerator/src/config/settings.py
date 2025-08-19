@@ -22,7 +22,7 @@ for dir_path in [CONFIG_DIR, CACHE_DIR, CERTS_DIR, LOGS_DIR]:
     dir_path.mkdir(exist_ok=True)
 
 # 网络配置
-DNS_PORT = 53
+DNS_PORT = 5353  # 使用非特权端口，避免需要管理员权限
 PROXY_PORT = 8080
 HTTPS_PROXY_PORT = 8443
 

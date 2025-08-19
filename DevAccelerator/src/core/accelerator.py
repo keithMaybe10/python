@@ -88,9 +88,14 @@ class DevAccelerator:
                 self._set_status(AcceleratorStatus.ERROR)
                 return False
             
-            # 2. 尝试安装CA证书
-            if not self.cert_manager.install_ca_certificate():
-                logger.warning("CA证书安装失败，请手动安装")
+            # 2. 提供CA证书安装指导
+            self.cert_manager.install_ca_certificate()
+            
+            # 获取证书安装说明
+            cert_instructions = self.cert_manager.get_cert_install_instructions()
+            logger.info("请按照以下步骤手动安装CA证书以获得最佳体验:")
+            for instruction in cert_instructions["instructions"]:
+                logger.info(f"  {instruction}")
             
             # 3. 加载节点配置
             self.node_manager.load_nodes_config()

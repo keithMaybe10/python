@@ -104,9 +104,15 @@ class NodeStatusWidget(QWidget):
         self.latency_label.setProperty("class", "description")
         layout.addWidget(self.latency_label)
         
-        # 设置固定大小
+        # 设置固定大小和样式
         self.setFixedSize(160, 120)
-        self.setFrameStyle(QFrame.Shape.Box)
+        self.setStyleSheet("""
+            QWidget {
+                border: 1px solid #f0f0f0;
+                border-radius: 8px;
+                background-color: white;
+            }
+        """)
         self.setProperty("class", "card")
     
     def update_status(self, is_connected: bool, latency: Optional[float] = None):
@@ -479,3 +485,104 @@ class LoadingWidget(QWidget):
         rotation_chars = ["⟳", "⟲", "⟳", "⟲"]
         char_index = (self.angle // 90) % len(rotation_chars)
         self.loading_label.setText(rotation_chars[char_index])
+
+class CertInstallDialog(QWidget):
+    """证书安装指导对话框"""
+    
+    def __init__(self, instructions: dict, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("证书安装指导")
+        self.setFixedSize(600, 400)
+        self.instructions = instructions
+        self.setup_ui()
+    
+    def setup_ui(self):
+        """设置UI"""
+        layout = QVBoxLayout(self)
+        layout.setSpacing(16)
+        
+        # 标题
+        title_label = QLabel("🔐 CA证书安装指导")
+        title_label.setProperty("class", "title")
+        layout.addWidget(title_label)
+        
+        # 说明
+        desc_label = QLabel("为了获得最佳的HTTPS代理体验，请按照以下步骤安装CA证书：")
+        desc_label.setProperty("class", "description")
+        desc_label.setWordWrap(True)
+        layout.addWidget(desc_label)
+        
+        # 证书路径
+        path_layout = QHBoxLayout()
+        path_layout.addWidget(QLabel("证书文件:"))
+        
+        self.path_label = QLabel(self.instructions["cert_path"])
+        self.path_label.setStyleSheet("background-color: #f5f5f5; padding: 4px; border-radius: 4px;")
+        path_layout.addWidget(self.path_label)
+        
+        copy_path_btn = QPushButton("📋 复制路径")
+        copy_path_btn.clicked.connect(self.copy_cert_path)
+        path_layout.addWidget(copy_path_btn)
+        
+        layout.addLayout(path_layout)
+        
+        # 安装步骤
+        steps_label = QLabel("安装步骤:")
+        steps_label.setProperty("class", "subtitle")
+        layout.addWidget(steps_label)
+        
+        # 步骤列表
+        steps_text = QTextEdit()
+        steps_text.setReadOnly(True)
+        steps_text.setMaximumHeight(200)
+        
+        steps_content = "\n".join(self.instructions["instructions"])
+        steps_text.setPlainText(steps_content)
+        layout.addWidget(steps_text)
+        
+        # 提示信息
+        tip_label = QLabel("💡 提示: 安装证书后，重启浏览器以确保生效。如果不安装证书，HTTPS网站可能显示安全警告。")
+        tip_label.setProperty("class", "description")
+        tip_label.setWordWrap(True)
+        tip_label.setStyleSheet("background-color: #e6f7ff; padding: 8px; border-radius: 4px; border-left: 3px solid #1890ff;")
+        layout.addWidget(tip_label)
+        
+        # 按钮
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        open_folder_btn = QPushButton("📁 打开证书文件夹")
+        open_folder_btn.clicked.connect(self.open_cert_folder)
+        button_layout.addWidget(open_folder_btn)
+        
+        close_btn = QPushButton("关闭")
+        close_btn.setProperty("class", "primary")
+        close_btn.clicked.connect(self.close)
+        button_layout.addWidget(close_btn)
+        
+        layout.addLayout(button_layout)
+    
+    def copy_cert_path(self):
+        """复制证书路径"""
+        from PySide6.QtWidgets import QApplication
+        clipboard = QApplication.clipboard()
+        clipboard.setText(self.instructions["cert_path"])
+    
+    def open_cert_folder(self):
+        """打开证书文件夹"""
+        import subprocess
+        import platform
+        from pathlib import Path
+        
+        cert_folder = Path(self.instructions["cert_path"]).parent
+        system = platform.system().lower()
+        
+        try:
+            if system == "windows":
+                subprocess.run(f'explorer "{cert_folder}"', shell=True)
+            elif system == "darwin":
+                subprocess.run(f'open "{cert_folder}"', shell=True)
+            elif system == "linux":
+                subprocess.run(f'xdg-open "{cert_folder}"', shell=True)
+        except Exception as e:
+            print(f"无法打开文件夹: {e}")
