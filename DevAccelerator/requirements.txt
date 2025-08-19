@@ -1,0 +1,10 @@
+PySide6>=6.6.0
+requests>=2.31.0
+cryptography>=41.0.0
+dnslib>=0.9.24
+aiohttp>=3.9.0
+asyncio-throttle>=1.0.2
+psutil>=5.9.0
+pycryptodome>=3.19.0
+pyinstaller>=6.0.0
+qasync>=0.24.0
