@@ -586,3 +586,90 @@ class CertInstallDialog(QWidget):
                 subprocess.run(f'xdg-open "{cert_folder}"', shell=True)
         except Exception as e:
             print(f"无法打开文件夹: {e}")
+
+class SettingsDialog(QWidget):
+    """设置对话框"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("设置")
+        self.setFixedSize(420, 280)
+        self.setup_ui()
+        self.load_values()
+    
+    def setup_ui(self):
+        """设置UI"""
+        layout = QVBoxLayout(self)
+        layout.setSpacing(16)
+        
+        # 标题
+        title_label = QLabel(f"{get_icon('settings')} 应用设置")
+        title_label.setProperty("class", "title")
+        layout.addWidget(title_label)
+        
+        # 基础设置区域
+        basic_group = QFrame()
+        basic_group.setProperty("class", "card")
+        basic_layout = QVBoxLayout(basic_group)
+        basic_layout.setSpacing(12)
+        
+        self.auto_start_cb = QCheckBox("开机自启")
+        self.minimize_to_tray_cb = QCheckBox("关闭时最小化到托盘")
+        self.check_updates_cb = QCheckBox("启动时检查更新")
+        
+        basic_layout.addWidget(self.auto_start_cb)
+        basic_layout.addWidget(self.minimize_to_tray_cb)
+        basic_layout.addWidget(self.check_updates_cb)
+        layout.addWidget(basic_group)
+        
+        # 语言与主题（占位）
+        appearance_group = QFrame()
+        appearance_group.setProperty("class", "card")
+        appearance_layout = QVBoxLayout(appearance_group)
+        appearance_layout.setSpacing(12)
+        
+        lang_row = QHBoxLayout()
+        lang_row.addWidget(QLabel("语言:"))
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems(["简体中文", "English"])
+        self.lang_combo.setCurrentIndex(0)
+        lang_row.addWidget(self.lang_combo)
+        lang_row.addStretch()
+        appearance_layout.addLayout(lang_row)
+        
+        theme_row = QHBoxLayout()
+        theme_row.addWidget(QLabel("主题:"))
+        self.theme_combo = QComboBox()
+        self.theme_combo.addItems(["默认(浅色)"])
+        theme_row.addWidget(self.theme_combo)
+        theme_row.addStretch()
+        appearance_layout.addLayout(theme_row)
+        
+        layout.addWidget(appearance_group)
+        
+        # 按钮
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        cancel_btn = QPushButton("取消")
+        cancel_btn.clicked.connect(self.close)
+        save_btn = QPushButton("保存")
+        save_btn.setProperty("class", "primary")
+        save_btn.clicked.connect(self.save_values)
+        btn_row.addWidget(cancel_btn)
+        btn_row.addWidget(save_btn)
+        layout.addLayout(btn_row)
+    
+    def load_values(self):
+        """加载配置值"""
+        from config.settings import config
+        self.auto_start_cb.setChecked(bool(config.get("auto_start", False)))
+        self.minimize_to_tray_cb.setChecked(bool(config.get("minimize_to_tray", True)))
+        self.check_updates_cb.setChecked(bool(config.get("check_updates", True)))
+    
+    def save_values(self):
+        """保存配置值"""
+        from config.settings import config
+        config.set("auto_start", self.auto_start_cb.isChecked())
+        config.set("minimize_to_tray", self.minimize_to_tray_cb.isChecked())
+        config.set("check_updates", self.check_updates_cb.isChecked())
+        self.close()
